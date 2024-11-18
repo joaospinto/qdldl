@@ -22,6 +22,8 @@
  */
 #include "qdldl.h"
 
+#include <stdio.h>  // TODO(joao): remove.
+
 #define QDLDL_UNKNOWN (-1)
 #define QDLDL_USED (1)
 #define QDLDL_UNUSED (0)
@@ -34,6 +36,7 @@ QDLDL_int QDLDL_etree(const QDLDL_int  n,
                       const QDLDL_int* Ap,
                       const QDLDL_int* Ai,
                       const QDLDL_int* p,
+                      const QDLDL_int* pinv,
                       QDLDL_int* work,
                       QDLDL_int* Lnz,
                       QDLDL_int* etree){
@@ -42,6 +45,7 @@ QDLDL_int QDLDL_etree(const QDLDL_int  n,
   QDLDL_int i,j,k;
 
 
+  printf("JOAO CKPT B1\n");
   for(i = 0; i < n; i++){
   // zero out Lnz and work.  Set all etree values to unknown
     work[i]  = 0;
@@ -50,15 +54,16 @@ QDLDL_int QDLDL_etree(const QDLDL_int  n,
 
     //Abort if A doesn't have at least one entry
     //one entry in every column
-    if(Ap[p[i]] == Ap[p[i]+1]){
+    if(Ap[pinv[i]] == Ap[pinv[i]+1]){
       return -1;
     }
 
   }
+  printf("JOAO CKPT B2\n");
 
   for(j = 0; j < n; j++){
     work[j] = j;
-    for(k = Ap[p[j]]; k < Ap[p[j]+1]; k++){
+    for(k = Ap[pinv[j]]; k < Ap[pinv[j]+1]; k++){
       i = Ai[p[k]];
       if(i > j){return -1;}; //abort if entries on lower triangle
       while(work[i] != j){
@@ -71,6 +76,7 @@ QDLDL_int QDLDL_etree(const QDLDL_int  n,
       }
     }
   }
+  printf("JOAO CKPT B3\n");
 
   //compute the total nonzeros in L.  This much
   //space is required to store Li and Lx.  Return
@@ -86,6 +92,7 @@ QDLDL_int QDLDL_etree(const QDLDL_int  n,
       sumLnz += Lnz[i];
     }
   }
+  printf("JOAO CKPT B4\n");
 
   return sumLnz;
 }
@@ -97,6 +104,7 @@ QDLDL_int QDLDL_factor(const QDLDL_int    n,
                   const QDLDL_int*   Ai,
                   const QDLDL_float* Ax,
                   const QDLDL_int* p,
+                  const QDLDL_int* pinv,
                   QDLDL_int*   Lp,
                   QDLDL_int*   Li,
                   QDLDL_float* Lx,
@@ -140,7 +148,7 @@ QDLDL_int QDLDL_factor(const QDLDL_int    n,
   }
 
   // First element of the diagonal D.
-  D[0]     = Ax[p[0]];
+  D[0]     = Ax[0];
   if(D[0] == 0.0){return -1;}
   if(D[0]  > 0.0){positiveValuesInD++;}
   Dinv[0] = 1/D[0];
@@ -161,9 +169,9 @@ QDLDL_int QDLDL_factor(const QDLDL_int    n,
     //This loop determines where nonzeros
     //will go in the kth row of L, but doesn't
     //compute the actual values
-    tmpIdx = Ap[p[k]+1];
+    tmpIdx = Ap[pinv[k]+1];
 
-    for(i = Ap[p[k]]; i < tmpIdx; i++){
+    for(i = Ap[pinv[k]]; i < tmpIdx; i++){
 
       bidx = Ai[p[i]];   // we are working on this element of b
 
@@ -172,11 +180,11 @@ QDLDL_int QDLDL_factor(const QDLDL_int    n,
       //this element as part of the elimination step
       //that computes the k^th row of L
       if(bidx == k){
-        D[k] = Ax[p[i]];
+        D[k] = Ax[i];
         continue;
       }
 
-      yVals[bidx] = Ax[p[i]];   // initialise y(bidx) = b(bidx)
+      yVals[bidx] = Ax[i];   // initialise y(bidx) = b(bidx)
 
       // use the forward elimination tree to figure
       // out which elements must be eliminated after
@@ -262,13 +270,15 @@ void QDLDL_Lsolve(const QDLDL_int    n,
                   const QDLDL_int*   Li,
                   const QDLDL_float* Lx,
                   const QDLDL_int* p,
+                  const QDLDL_int* pinv,
                   QDLDL_float* x){
+  // TODO(joao): implement properly.
 
   QDLDL_int i,j;
   for(i = 0; i < n; i++){
-    QDLDL_float val = x[p[i]];
+    QDLDL_float val = x[i];
     for(j = Lp[i]; j < Lp[i+1]; j++){
-      x[p[Li[j]]] -= Lx[j]*val;
+      x[Li[j]] -= Lx[j]*val;
     }
   }
 }
@@ -279,15 +289,18 @@ void QDLDL_Ltsolve(const QDLDL_int    n,
                    const QDLDL_int*   Li,
                    const QDLDL_float* Lx,
                    const QDLDL_int* p,
+                   const QDLDL_int* pinv,
                    QDLDL_float* x){
+
+  // TODO(joao): implement properly.
 
   QDLDL_int i,j;
   for(i = n-1; i>=0; i--){
     QDLDL_float val = x[i];
     for(j = Lp[i]; j < Lp[i+1]; j++){
-      val -= Lx[j]*x[p[Li[j]]];
+      val -= Lx[j]*x[Li[j]];
     }
-    x[p[i]] = val;
+    x[i] = val;
   }
 }
 
@@ -298,11 +311,13 @@ void QDLDL_solve(const QDLDL_int       n,
                     const QDLDL_float* Lx,
                     const QDLDL_float* Dinv,
                     const QDLDL_int* p,
+                    const QDLDL_int* pinv,
                     QDLDL_float* x){
+  // TODO(joao): implement properly.
 
   QDLDL_int i;
 
-  QDLDL_Lsolve(n,Lp,Li,Lx,p,x);
+  QDLDL_Lsolve(n,Lp,Li,Lx,p,pinv,x);
   for(i = 0; i < n; i++) x[p[i]] *= Dinv[i];
-  QDLDL_Ltsolve(n,Lp,Li,Lx,p,x);
+  QDLDL_Ltsolve(n,Lp,Li,Lx,p,pinv,x);
 }

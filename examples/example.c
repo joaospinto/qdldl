@@ -6,14 +6,15 @@ void print_arrayi(const QDLDL_int* data, QDLDL_int n,char* varName);
 void print_arrayf(const QDLDL_float* data, QDLDL_int n, char* varName);
 void print_line(void);
 
-const QDLDL_int   An   = 10;
-const QDLDL_int   Ap[] = {0, 1, 2, 4, 5, 6, 8, 10, 12, 14, 17};
-const QDLDL_int   Ai[] = {0, 1, 1, 2, 3, 4, 1, 5, 0, 6, 3, 7, 6, 8, 1, 2, 9};
-const QDLDL_float Ax[] = {1.0, 0.460641, -0.121189, 0.417928, 0.177828, 0.1,
-                       -0.0290058, -1.0, 0.350321, -0.441092, -0.0845395,
-                       -0.316228, 0.178663, -0.299077, 0.182452, -1.56506, -0.1};
-const QDLDL_int   p[]  = {0,1,2,3,4,5,6,7,8,9};
-const QDLDL_float b[]  = {1,2,3,4,5,6,7,8,9,10};
+const QDLDL_int   An      = 10;
+const QDLDL_int   Ap[]    = {0, 1, 2, 4, 5, 6, 8, 10, 12, 14, 17};
+const QDLDL_int   Ai[]    = {0, 1, 1, 2, 3, 4, 1, 5, 0, 6, 3, 7, 6, 8, 1, 2, 9};
+const QDLDL_float Ax[]    = {1.0, 0.460641, -0.121189, 0.417928, 0.177828, 0.1,
+                          -0.0290058, -1.0, 0.350321, -0.441092, -0.0845395,
+                          -0.316228, 0.178663, -0.299077, 0.182452, -1.56506, -0.1};
+const QDLDL_int   p[]     = {0,1,2,3,4,5,6,7,8,9};
+const QDLDL_int   pinv[]  = {0,1,2,3,4,5,6,7,8,9};
+const QDLDL_float b[]     = {1,2,3,4,5,6,7,8,9,10};
 
 int main()
 
@@ -71,7 +72,10 @@ int main()
   /*--------------------------------
    * elimination tree calculation
    *---------------------------------*/
-  sumLnz = QDLDL_etree(An,Ap,Ai,p,iwork,Lnz,etree);
+
+  printf("JOAO CKPT A1\n");
+  sumLnz = QDLDL_etree(An,Ap,Ai,p,pinv,iwork,Lnz,etree);
+  printf("JOAO CKPT A2\n");
 
   /*--------------------------------
    * LDL factorisation
@@ -82,7 +86,7 @@ int main()
   Lx    = (QDLDL_float*)malloc(sizeof(QDLDL_float)*sumLnz);
 
   //now factor
-  QDLDL_factor(An,Ap,Ai,Ax,p,Lp,Li,Lx,D,Dinv,Lnz,etree,bwork,iwork,fwork);
+  QDLDL_factor(An,Ap,Ai,Ax,p,pinv,Lp,Li,Lx,D,Dinv,Lnz,etree,bwork,iwork,fwork);
 
   /*--------------------------------
    * solve
@@ -91,7 +95,7 @@ int main()
 
   //when solving A\b, start with x = b
   for(i=0;i < Ln; i++) x[i] = b[i];
-  QDLDL_solve(Ln,Lp,Li,Lx,Dinv,p,x);
+  QDLDL_solve(Ln,Lp,Li,Lx,Dinv,p,pinv,x);
 
   /*--------------------------------
    * print factors and solution

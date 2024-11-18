@@ -82,6 +82,7 @@ extern "C" {
   * @param  Ap     column pointers (size n+1) for columns of A
   * @param  Ai     row indices of A.  Has Ap[n] elements
   * @param  p      an index permutation.  Has n elements
+  * @param  pinv   an index permutation.  Has n elements
   * @param  work   work vector (size n) (no meaning on return)
   * @param  Lnz    count of nonzeros in each column of L (size n) below diagonal
   * @param  etree  elimination tree (size n)
@@ -94,6 +95,7 @@ QDLDL_API QDLDL_int QDLDL_etree(const QDLDL_int   n,
                                 const QDLDL_int* Ap,
                                 const QDLDL_int* Ai,
                                 const QDLDL_int* p,
+                                const QDLDL_int* pinv,
                                 QDLDL_int* work,
                                 QDLDL_int* Lnz,
                                 QDLDL_int* etree);
@@ -117,6 +119,7 @@ QDLDL_API QDLDL_int QDLDL_etree(const QDLDL_int   n,
   * @param  Ai     row indices of A.  Has Ap[n] elements (not modified)
   * @param  Ax     data of A.  Has Ap[n] elements (not modified)
   * @param  p      an index permutation.  Has n elements
+  * @param  pinv   an index permutation.  Has n elements
   * @param  Lp     column pointers (size n+1) for columns of L
   * @param  Li     row indices of L.  Has Lp[n] elements
   * @param  Lx     data of L.  Has Lp[n] elements
@@ -139,6 +142,7 @@ QDLDL_API QDLDL_int QDLDL_factor(const QDLDL_int    n,
                                  const QDLDL_int*   Ai,
                                  const QDLDL_float* Ax,
                                  const QDLDL_int* p,
+                                 const QDLDL_int* pinv,
                                  QDLDL_int*   Lp,
                                  QDLDL_int*   Li,
                                  QDLDL_float* Lx,
@@ -163,6 +167,7 @@ QDLDL_API QDLDL_int QDLDL_factor(const QDLDL_int    n,
   * @param  Lx     data of L.  Has Lp[n] elements
   * @param  Dinv   reciprocal of D.  Length is n
   * @param  p      an index permutation.  Has n elements
+  * @param  pinv   an index permutation.  Has n elements
   * @param  x      initialized to b.  Equal to x on return
   *
 */
@@ -172,6 +177,7 @@ QDLDL_API void QDLDL_solve(const QDLDL_int    n,
                            const QDLDL_float* Lx,
                            const QDLDL_float* Dinv,
                            const QDLDL_int* p,
+                           const QDLDL_int* pinv,
                            QDLDL_float* x);
 
 
@@ -186,6 +192,7 @@ QDLDL_API void QDLDL_solve(const QDLDL_int    n,
  * @param  Li     row indices of L.  Has Lp[n] elements
  * @param  Lx     data of L.  Has Lp[n] elements
  * @param  p      an index permutation.  Has n elements
+ * @param  pinv   an index permutation.  Has n elements
  * @param  x      initialized to b.  Equal to x on return
  *
 */
@@ -194,6 +201,7 @@ QDLDL_API void QDLDL_Lsolve(const QDLDL_int    n,
                             const QDLDL_int*   Li,
                             const QDLDL_float* Lx,
                             const QDLDL_int* p,
+                            const QDLDL_int* pinv,
                             QDLDL_float* x);
 
 
@@ -208,6 +216,7 @@ QDLDL_API void QDLDL_Lsolve(const QDLDL_int    n,
  * @param  Li     row indices of L.  Has Lp[n] elements
  * @param  Lx     data of L.  Has Lp[n] elements
  * @param  p      an index permutation.  Has n elements
+ * @param  pinv   an index permutation.  Has n elements
  * @param  x      initialized to b.  Equal to x on return
  *
 */
@@ -216,6 +225,7 @@ QDLDL_API void QDLDL_Ltsolve(const QDLDL_int    n,
                              const QDLDL_int*   Li,
                              const QDLDL_float* Lx,
                              const QDLDL_int* p,
+                             const QDLDL_int* pinv,
                              QDLDL_float* x);
 
 # ifdef __cplusplus

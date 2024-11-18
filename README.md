@@ -37,7 +37,7 @@ You can control which libraries and executables are built using the following cm
 * `QDLDL_BUILD_SHARED_LIB` (default on) - Build the shared library version of QDLDL.
 * `QDLDL_BUILD_DEMO_EXE` (default on) - Build the `qdldl_example` demo executable (requires the static library).
 
-You can include an addition option `-QDLDL_UNITTESTS=ON` when calling `cmake`, which will result in an additional executable `qdldl_tester` being built in the `out/` folder to test QDLDL on a variety of problems, including those with rank deficient or otherwise ill-formatted inputs.
+You can include an addition option `-DQDLDL_UNITTESTS=ON` when calling `cmake`, which will result in an additional executable `qdldl_tester` being built in the `out/` folder to test QDLDL on a variety of problems, including those with rank deficient or otherwise ill-formatted inputs.
 
 **N.B.** All files will have file extensions appropriate to your operating system.
 

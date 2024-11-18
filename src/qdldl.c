@@ -33,12 +33,13 @@
 QDLDL_int QDLDL_etree(const QDLDL_int  n,
                       const QDLDL_int* Ap,
                       const QDLDL_int* Ai,
+                      const QDLDL_int* p,
                       QDLDL_int* work,
                       QDLDL_int* Lnz,
                       QDLDL_int* etree){
 
   QDLDL_int sumLnz;
-  QDLDL_int i,j,p;
+  QDLDL_int i,j,k;
 
 
   for(i = 0; i < n; i++){
@@ -49,7 +50,7 @@ QDLDL_int QDLDL_etree(const QDLDL_int  n,
 
     //Abort if A doesn't have at least one entry
     //one entry in every column
-    if(Ap[i] == Ap[i+1]){
+    if(Ap[p[i]] == Ap[p[i]+1]){
       return -1;
     }
 
@@ -57,8 +58,8 @@ QDLDL_int QDLDL_etree(const QDLDL_int  n,
 
   for(j = 0; j < n; j++){
     work[j] = j;
-    for(p = Ap[j]; p < Ap[j+1]; p++){
-      i = Ai[p];
+    for(k = Ap[p[j]]; k < Ap[p[j]+1]; k++){
+      i = Ai[p[k]];
       if(i > j){return -1;}; //abort if entries on lower triangle
       while(work[i] != j){
         if(etree[i] == QDLDL_UNKNOWN){
@@ -95,6 +96,7 @@ QDLDL_int QDLDL_factor(const QDLDL_int    n,
                   const QDLDL_int*   Ap,
                   const QDLDL_int*   Ai,
                   const QDLDL_float* Ax,
+                  const QDLDL_int* p,
                   QDLDL_int*   Lp,
                   QDLDL_int*   Li,
                   QDLDL_float* Lx,
@@ -138,7 +140,7 @@ QDLDL_int QDLDL_factor(const QDLDL_int    n,
   }
 
   // First element of the diagonal D.
-  D[0]     = Ax[0];
+  D[0]     = Ax[p[0]];
   if(D[0] == 0.0){return -1;}
   if(D[0]  > 0.0){positiveValuesInD++;}
   Dinv[0] = 1/D[0];
@@ -159,22 +161,22 @@ QDLDL_int QDLDL_factor(const QDLDL_int    n,
     //This loop determines where nonzeros
     //will go in the kth row of L, but doesn't
     //compute the actual values
-    tmpIdx = Ap[k+1];
+    tmpIdx = Ap[p[k]+1];
 
-    for(i = Ap[k]; i < tmpIdx; i++){
+    for(i = Ap[p[k]]; i < tmpIdx; i++){
 
-      bidx = Ai[i];   // we are working on this element of b
+      bidx = Ai[p[i]];   // we are working on this element of b
 
       //Initialize D[k] as the element of this column
       //corresponding to the diagonal place.  Don't use
       //this element as part of the elimination step
       //that computes the k^th row of L
       if(bidx == k){
-        D[k] = Ax[i];
+        D[k] = Ax[p[i]];
         continue;
       }
 
-      yVals[bidx] = Ax[i];   // initialise y(bidx) = b(bidx)
+      yVals[bidx] = Ax[p[i]];   // initialise y(bidx) = b(bidx)
 
       // use the forward elimination tree to figure
       // out which elements must be eliminated after
@@ -259,13 +261,14 @@ void QDLDL_Lsolve(const QDLDL_int    n,
                   const QDLDL_int*   Lp,
                   const QDLDL_int*   Li,
                   const QDLDL_float* Lx,
+                  const QDLDL_int* p,
                   QDLDL_float* x){
 
   QDLDL_int i,j;
   for(i = 0; i < n; i++){
-    QDLDL_float val = x[i];
+    QDLDL_float val = x[p[i]];
     for(j = Lp[i]; j < Lp[i+1]; j++){
-      x[Li[j]] -= Lx[j]*val;
+      x[p[Li[j]]] -= Lx[j]*val;
     }
   }
 }
@@ -275,15 +278,16 @@ void QDLDL_Ltsolve(const QDLDL_int    n,
                    const QDLDL_int*   Lp,
                    const QDLDL_int*   Li,
                    const QDLDL_float* Lx,
+                   const QDLDL_int* p,
                    QDLDL_float* x){
 
   QDLDL_int i,j;
   for(i = n-1; i>=0; i--){
     QDLDL_float val = x[i];
     for(j = Lp[i]; j < Lp[i+1]; j++){
-      val -= Lx[j]*x[Li[j]];
+      val -= Lx[j]*x[p[Li[j]]];
     }
-    x[i] = val;
+    x[p[i]] = val;
   }
 }
 
@@ -293,11 +297,12 @@ void QDLDL_solve(const QDLDL_int       n,
                     const QDLDL_int*   Li,
                     const QDLDL_float* Lx,
                     const QDLDL_float* Dinv,
+                    const QDLDL_int* p,
                     QDLDL_float* x){
 
   QDLDL_int i;
 
-  QDLDL_Lsolve(n,Lp,Li,Lx,x);
-  for(i = 0; i < n; i++) x[i] *= Dinv[i];
-  QDLDL_Ltsolve(n,Lp,Li,Lx,x);
+  QDLDL_Lsolve(n,Lp,Li,Lx,p,x);
+  for(i = 0; i < n; i++) x[p[i]] *= Dinv[i];
+  QDLDL_Ltsolve(n,Lp,Li,Lx,p,x);
 }
